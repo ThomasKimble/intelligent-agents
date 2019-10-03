@@ -1,0 +1,15 @@
+Error loading persistent chart sizes and positions
+org.xml.sax.SAXParseException; systemId: file:///C:/Users/jules/.repast/logist/gui/SimulationModel/charts.xml; lineNumber: 1; columnNumber: 1; Content is not allowed in prolog.
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.DOMParser.parse(DOMParser.java:261)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderImpl.parse(DocumentBuilderImpl.java:339)
+	at java.xml/javax.xml.parsers.DocumentBuilder.parse(DocumentBuilder.java:151)
+	at uchicago.src.sim.analysis.ChartArchiver.loadXML(Unknown Source)
+	at uchicago.src.sim.analysis.ChartArchiver.loadCharts(Unknown Source)
+	at uchicago.src.sim.engine.AbstractGUIController.setModel(Unknown Source)
+	at uchicago.src.sim.engine.Controller.setModel(Unknown Source)
+	at uchicago.src.sim.engine.SimInit.load(Unknown Source)
+	at uchicago.src.sim.engine.SimInit.load(Unknown Source)
+	at uchicago.src.sim.engine.SimInit.loadModel(Unknown Source)
+	at logist.simulation.Simulation.run(Simulation.java:67)
+	at logist.simulation.Manager.run(Manager.java:61)
+	at logist.LogistPlatform.main(LogistPlatform.java:126)
