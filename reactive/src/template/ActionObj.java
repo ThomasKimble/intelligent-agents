@@ -15,6 +15,7 @@ public class ActionObj {
         this.nextCity = nextCity;
     }
 
+    //Getter
     public boolean isTakeDelivery() {
         return takeDelivery;
     }

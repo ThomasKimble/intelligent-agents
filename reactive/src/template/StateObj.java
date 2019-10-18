@@ -18,6 +18,7 @@ public class StateObj {
         this.hasPackage = true;
     }
 
+    //Getter
     public City getCurrentCity() {
         return currentCity;
     }

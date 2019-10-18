@@ -1,6 +1,5 @@
 package template;
 
-import java.util.Random;
 import java.util.List;
 
 import logist.simulation.Vehicle;
@@ -28,9 +27,10 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	private double [] [] bestPolicyValueMatrix;
 	private ActionObj [] [] bestPolicyMatrix;
 
+	// Creation of the state matrix
 	public void stateMatrixInit (List<City> cityList) {
-		stateMatrix = new StateObj [cityList.size()] [cityList.size()];
-		for (City currentCity : cityList){
+		stateMatrix = new StateObj [cityList.size()] [cityList.size()]; //Initialisation
+		for (City currentCity : cityList){ //Filling
 			StateObj noPackageInCity = new StateObj(currentCity);
 			stateMatrix [currentCity.id] [currentCity.id] = noPackageInCity;
 			for (City destineCity : cityList){
@@ -43,9 +43,10 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		System.out.println("stateMatrixInit Done");
 	}
 
+	// Creation of the action matrix
 	public void actionMatrixInit (List<City> cityList) {
-		actionMatrix = new ActionObj [cityList.size()+1];
-		ActionObj actionA = new ActionObj();
+		actionMatrix = new ActionObj [cityList.size()+1]; //Initialisation
+		ActionObj actionA = new ActionObj(); //Filling
 		actionMatrix[actionMatrix.length-1] = actionA;
 		for(City city : cityList) {
 			ActionObj actionB = new ActionObj(city);
@@ -54,6 +55,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		System.out.println("actionMatrixInit Done");
 	}
 
+	// Return the probability for a current state, an action and a next state given
 	public double probability(StateObj state, ActionObj action, StateObj nextState) {
 		if (action.isTakeDelivery() && !state.isHasPackage()) {
 			return 0;
@@ -64,22 +66,24 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		} else return 0;
 	}
 
+	// Return the reward for a state and an action given.
 	public double reward(StateObj state, ActionObj action){
-		if (!state.isHasPackage() && !action.isTakeDelivery()){
-			if(action.getNextCity().hasNeighbor(state.getCurrentCity())) {
-				return -1*state.getCurrentCity().distanceTo(action.getNextCity());
+		if (!state.isHasPackage() && !action.isTakeDelivery()){ //No package available
+			if(action.getNextCity().hasNeighbor(state.getCurrentCity())) { //Only choose a neighboring city
+				return -70*state.getCurrentCity().distanceTo(action.getNextCity());
 			} else return -99999999; //-inf
 
-		} else if (state.isHasPackage() && !action.isTakeDelivery()){
-			if(action.getNextCity().hasNeighbor(state.getCurrentCity())) {
-				return -1*state.getCurrentCity().distanceTo(action.getNextCity());
-			} else return -99999999; //penalize city for not being a neighbor
+		} else if (state.isHasPackage() && !action.isTakeDelivery()){ //Agent does't want to take the package
+			if(action.getNextCity().hasNeighbor(state.getCurrentCity())) { //Only choose a neighboring city
+				return -70*state.getCurrentCity().distanceTo(action.getNextCity());
+			} else return -99999999; //-inf
 
-		} else if(state.isHasPackage() && action.isTakeDelivery()) {
-			return TD.reward(state.getCurrentCity(), state.getDestineCity()) - 1*state.getCurrentCity().distanceTo(state.getDestineCity());
+		} else if(state.isHasPackage() && action.isTakeDelivery()) { //Agent takes the package
+			return TD.reward(state.getCurrentCity(), state.getDestineCity()) - 70*state.getCurrentCity().distanceTo(state.getDestineCity());
 		} else return -99999999; //-inf
 	}
 
+	// Initialisation of the matrix used to compute the policy
 	public void PolicyMatrixsInit(){
 		vectorS = new double [cityList.size()] [cityList.size()];
 		tempoPolicyMatrix = new ActionObj [cityList.size()] [cityList.size()];
@@ -96,6 +100,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		System.out.println("PolicyMatrixsInit Done");
 	}
 
+	// Computing the best policy
 	public void policyInit() {
 		double quantityMax;
 		double quantity;
@@ -158,21 +163,21 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		Action action;
 		City currentCity = vehicle.getCurrentCity();
 
-		if (availableTask == null) {
-			System.out.println("NO PACKAGES");
+		if (availableTask == null) { //No package
+			System.out.println("NO PACKAGE");
 			action = new Move(bestPolicyMatrix[currentCity.id][currentCity.id].getNextCity());
 		} else {
-			if(bestPolicyMatrix[currentCity.id][availableTask.deliveryCity.id].isTakeDelivery()) {
+			if(bestPolicyMatrix[currentCity.id][availableTask.deliveryCity.id].isTakeDelivery()) { //Take
 				System.out.println("TAKEN");
 				action = new Pickup(availableTask);
-			} else {
+			} else { // Not taken
 				System.out.println("NOT TAKEN");
 				action = new Move(bestPolicyMatrix[currentCity.id][currentCity.id].getNextCity());
 			}
 		}
 
 		if (numActions >= 1) {
-			System.out.println("The total profit after "+numActions+" actions is "+myAgent.getTotalProfit()+" (average profit: "+(myAgent.getTotalProfit() / (double)numActions)+")");
+			System.out.println("The total profit after "+numActions+" actions for vehicule "+myAgent.id()+" is "+myAgent.getTotalProfit()+" (average profit: "+(myAgent.getTotalProfit() / (double)numActions)+")");
 		}
 		numActions++;
 		return action;
