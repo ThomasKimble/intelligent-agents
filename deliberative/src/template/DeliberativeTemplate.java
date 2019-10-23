@@ -101,8 +101,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		for (Task taskTransported : vehicle.getCurrentTasks()) { //Adding the task in progress
 			weightVehicle += taskTransported.weight;
 		}
-		int freeWeightVehicle = vehicle.capacity() - weightVehicle;
-		StateObject currentState = new StateObject(vehicle, weightVehicle, freeWeightVehicle, currentCity, new ArrayList<Action>(), tasks2do, vehicle.getCurrentTasks(), 0);
+		StateObject currentState = new StateObject(vehicle, weightVehicle, currentCity, new ArrayList<Action>(), tasks2do, vehicle.getCurrentTasks(), 0);
 
 		// BFS algorithm optimized to find the optimal plan by minimizing iteration
 		ArrayList<StateObject> Q = new ArrayList<StateObject>();
@@ -162,9 +161,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		for (Task taskTransported : vehicle.getCurrentTasks()) {
 			weightVehicle += taskTransported.weight;
 		}
-		int freeWeightVehicle = vehicle.capacity() - weightVehicle;
 
-		StateObject currentState = new StateObject(vehicle, weightVehicle, freeWeightVehicle, currentCity, new ArrayList<Action>(), tasks2do, vehicle.getCurrentTasks(), 0);
+		StateObject currentState = new StateObject(vehicle, weightVehicle, currentCity, new ArrayList<Action>(), tasks2do, vehicle.getCurrentTasks(), 0);
 
 		// A* algorithm
 		ArrayList<StateObject> Q = new ArrayList<>();

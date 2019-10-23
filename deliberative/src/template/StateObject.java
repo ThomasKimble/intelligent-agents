@@ -26,13 +26,13 @@ public class StateObject{
     private double hCost;
     private double fCost;
 
-    public StateObject(Vehicle vehicle, int currentWeightVehicle, int freeWeightVehicle,
+    public StateObject(Vehicle vehicle, int currentWeightVehicle,
                        City currentCity, ArrayList<Action> actionList,
                        TaskSet availableTasks, TaskSet transportedTasks,
                        double gCost) {
         this.vehicle = vehicle;
         this.weightVehicle = currentWeightVehicle;
-        this.freeWeightVehicle = freeWeightVehicle;
+        this.freeWeightVehicle = vehicle.capacity() - currentWeightVehicle;
         this.city = currentCity;
         this.tasks2do = availableTasks;
         this.tasksBeingDone = transportedTasks;
@@ -77,7 +77,6 @@ public class StateObject{
 
             double nextCost = gCost + city.distanceTo(nextCity)*vehicle.costPerKm();
             int nextWeightVehicle = weightVehicle + taskAvailable.weight;
-            int nextFreeWeightVehicle = freeWeightVehicle - taskAvailable.weight;
 
             ArrayList<Action> actions2nextState = new ArrayList<Action>(actions2state);
             if (city == nextCity){
@@ -88,7 +87,7 @@ public class StateObject{
                 }
                 actions2nextState.add(new Pickup(taskAvailable));
             }
-            nextStates.add(new StateObject(vehicle, nextWeightVehicle, nextFreeWeightVehicle, nextCity, actions2nextState, nextAvailable, nextTransported, nextCost));
+            nextStates.add(new StateObject(vehicle, nextWeightVehicle, nextCity, actions2nextState, nextAvailable, nextTransported, nextCost));
         }
 
         // Deliver action
@@ -100,7 +99,6 @@ public class StateObject{
 
             double nextCost = gCost + city.distanceTo(nextCity)*vehicle.costPerKm();
             int nextWeightVehicle = weightVehicle - taskTransported.weight;
-            int nextFreeWeightVehicle = freeWeightVehicle + taskTransported.weight;
 
             ArrayList<Action> actions2nextState = new ArrayList<Action>(actions2state);
             if (city == nextCity){
@@ -111,7 +109,7 @@ public class StateObject{
                 }
                 actions2nextState.add(new Delivery(taskTransported));
             }
-            nextStates.add(new StateObject(vehicle, nextWeightVehicle, nextFreeWeightVehicle, nextCity, actions2nextState, tasks2do, nextTransported, nextCost));
+            nextStates.add(new StateObject(vehicle, nextWeightVehicle, nextCity, actions2nextState, tasks2do, nextTransported, nextCost));
         }
         return nextStates;
     }

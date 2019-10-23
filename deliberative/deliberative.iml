@@ -8,6 +8,16 @@
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="jdk" jdkName="13" jdkType="JavaSDK" />
-    <orderEntry type="library" name="logist" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../logist/logist.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../logist/logist.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>
