@@ -15,14 +15,12 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="jdk" jdkName="13" jdkType="JavaSDK" />
     <orderEntry type="module-library">
-      <library>
+      <library name="logist.jar">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../logist/logist.jar!/" />
+          <root url="file://C:/workspace/logist/logist.jar" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../logist/logist.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
   </component>
