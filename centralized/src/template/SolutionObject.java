@@ -107,8 +107,7 @@ public class SolutionObject{
                 System.out.println("Time for vehicle " + vID + " to achieve its own plan: " + worldTime.get(vID));
             }
         }
-
-        return MaxTimeCost + (worldDistanceCost/(speedMean*vehicles.size())); //TotalCost take into account the time and the distance cost
+        return MaxTimeCost + (worldDistanceCost/(speedMean*vehicles.size())) / vehicles.size(); //TotalCost take into account the time and the distance cost
     }
 
     //Check if the world plan respects constraints
