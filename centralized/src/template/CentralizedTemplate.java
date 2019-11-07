@@ -63,7 +63,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
         //***** SLS algorithm parameters *****
         final String INITIALISATION_METHOD = "fairlyDistributed"; // Choice between "toTheBiggest", "randomly" and "fairlyDistributed".
-        final double PROBABILITY = 0.75; // Exploitation probability
+        final double PROBABILITY = 0.6; // Exploitation probability
         final int CRITERIA_1 = 800; // Maximum iteration to compute without improvement of a solution in a sub-part before to compute the next solution of this sub-part
         final int CRITERIA_2 = 3; // Number of solution to find in a sub-part.
         final int CRITERIA_3 = 3; // Number of part without improvement (stopCriteria)
@@ -73,7 +73,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         //***** Run SLS algorithm several times and choose the best solution among the final solutions computed *****
         ArrayList<SolutionObject> finalSolutions = new ArrayList<>();
         for (int i = 0; i < NB_FINALSOLUTIONS; i++){
-            finalSolutions.add(SLS(vehicles, tasks, INITIALISATION_METHOD, PROBABILITY, CRITERIA_1, CRITERIA_2, CRITERIA_3));
+            finalSolutions.add(SLS(vehicles, tasks, INITIALISATION_METHOD, PROBABILITY, CRITERIA_1, CRITERIA_2, CRITERIA_3, timeout_plan/NB_FINALSOLUTIONS));
         }
         System.out.println("\n--------------------------------------------------------------------\n");
 
@@ -100,6 +100,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
+        System.out.println("Cost: "+bestCost);
         System.out.println("The plan was generated in " + duration + " milliseconds.");
 
         return plans;
@@ -128,13 +129,16 @@ public class CentralizedTemplate implements CentralizedBehavior {
     // SLS algorithm
     private SolutionObject SLS(List<Vehicle> vehicles, TaskSet tasks,
                                final String INITIALISATION_METHOD, final double PROBABILITY,
-                               final int CRITERIA_1, final int CRITERIA_2, final int CRITERIA_3) {
+                               final int CRITERIA_1, final int CRITERIA_2, final int CRITERIA_3, final long TIME) {
         //**********************************************************************
         //************************** SLS algorithm *****************************
         //**********************************************************************
-
+        long time_start_SLS = System.currentTimeMillis();
+        long time_end_SLS;
+        long duration_SLS = 0;
         //***** 1st step : SelectInitialSolution *****
         SolutionObject initialSolution = selectInitialSolution(vehicles, tasks, INITIALISATION_METHOD);
+        System.out.println("Cost: "+initialSolution.getTotalCost(false));
         SolutionObject currentSolution = new SolutionObject(initialSolution);
         SolutionObject bestSolution = new SolutionObject(initialSolution);
 
@@ -146,7 +150,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
         int iterationsCounter = 0;
         boolean stopCondition = false;
-        while (!stopCondition) {
+        while (!stopCondition && duration_SLS < (TIME-3000)) {
             //** 1st sub-step : ChooseNeighbours **
             // This function provides a set of candidate assignment that are close to the current one and could possibly improve it.
             ArrayList<SolutionObject> neighbourSolutions = chooseNeighbours(currentSolution, vehicles, tasks);
@@ -194,6 +198,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
             }
             noImprovementSubSolutionCounter++;
             iterationsCounter++;
+            time_end_SLS = System.currentTimeMillis();
+            duration_SLS = time_end_SLS - time_start_SLS;
         }
         System.out.println("--> Number of iterations to find a solution: " + iterationsCounter);
         return currentSolution;
