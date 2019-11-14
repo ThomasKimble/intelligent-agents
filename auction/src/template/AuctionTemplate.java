@@ -28,8 +28,13 @@ public class AuctionTemplate implements AuctionBehavior {
 	private TaskDistribution distribution;
 	private Agent agent;
 	private Random random;
-	private Vehicle vehicle;
+	private List<Vehicle> vehicle;
 	private City currentCity;
+
+	private ArrayList<Task> currentTasks;
+	private SolutionObject currentSolution;
+	private SolutionObject futureSolution;
+
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution,
@@ -38,8 +43,11 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.topology = topology;
 		this.distribution = distribution;
 		this.agent = agent;
-		this.vehicle = agent.vehicles().get(0);
-		this.currentCity = vehicle.homeCity();
+		this.vehicle = agent.vehicles();
+		this.currentCity = vehicle.get(0).homeCity();
+
+		this.currentTasks = new ArrayList<Task>();
+		this.currentSolution = new SolutionObject(vehicle, currentTasks);
 
 		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
 		this.random = new Random(seed);
@@ -48,61 +56,40 @@ public class AuctionTemplate implements AuctionBehavior {
 	@Override
 	public void auctionResult(Task previous, int winner, Long[] bids) {
 		if (winner == agent.id()) {
-			currentCity = previous.deliveryCity;
+			currentSolution = new SolutionObject(futureSolution);
+			currentTasks.add(previous);
 		}
 	}
 	
 	@Override
 	public Long askPrice(Task task) {
+		List<Task> myTasks = new ArrayList<Task>(currentTasks);
+		myTasks.add(task);
 
-		if (vehicle.capacity() < task.weight)
-			return null;
+		futureSolution = CentralizedPlan.centralizedSolution(vehicle, myTasks);
 
-		long distanceTask = task.pickupCity.distanceUnitsTo(task.deliveryCity);
-		long distanceSum = distanceTask + currentCity.distanceUnitsTo(task.pickupCity);
-		double marginalCost = Measures.unitsToKM(distanceSum * vehicle.costPerKm());
+		double marginalCost = Math.abs(futureSolution.getTotalCost() - currentSolution.getTotalCost());
 
-		double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id);
-		double bid = ratio * marginalCost;
 
-		return (long) Math.round(bid);
+//		if (vehicle.capacity() < task.weight)
+//			return null;
+//
+//		long distanceTask = task.pickupCity.distanceUnitsTo(task.deliveryCity);
+//		long distanceSum = distanceTask + currentCity.distanceUnitsTo(task.pickupCity);
+//		double marginalCost = Measures.unitsToKM(distanceSum * vehicle.costPerKm());
+//
+//		double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id);
+//		double bid = ratio * marginalCost;
+//
+//		return (long) Math.round(bid);
+		return Math.round(marginalCost);
 	}
 
 	@Override
 	public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
-		
-//		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-
-		Plan planVehicle1 = naivePlan(vehicle, tasks);
-
-		List<Plan> plans = new ArrayList<Plan>();
-		plans.add(planVehicle1);
-		while (plans.size() < vehicles.size())
-			plans.add(Plan.EMPTY);
-
-		return plans;
-	}
-
-	private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
-		City current = vehicle.getCurrentCity();
-		Plan plan = new Plan(current);
-
-		for (Task task : tasks) {
-			// move: current city => pickup location
-			for (City city : current.pathTo(task.pickupCity))
-				plan.appendMove(city);
-
-			plan.appendPickup(task);
-
-			// move: pickup location => delivery location
-			for (City city : task.path())
-				plan.appendMove(city);
-
-			plan.appendDelivery(task);
-
-			// set current city
-			current = task.deliveryCity;
-		}
-		return plan;
+		List<Task> tasksList = new ArrayList<>(tasks);
+		currentSolution = CentralizedPlan.centralizedSolution(vehicles, tasksList);
+		System.out.println(currentSolution.getTotalCost());
+		return currentSolution.generatePlan();
 	}
 }
