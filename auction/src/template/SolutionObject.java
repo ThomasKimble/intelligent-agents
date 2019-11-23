@@ -31,7 +31,7 @@ public class SolutionObject{
                 id_max = t.id;
             }
         }
-        this.worldNbTask = id_max + 1; //tasks.size
+        this.worldNbTask = id_max + 1;
         for(Vehicle vehicle: vehicles) {
             this.worldPlan.add(vehicle.id(), new ArrayList<Integer>()); //Initialisation
         }

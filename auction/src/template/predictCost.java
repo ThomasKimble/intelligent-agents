@@ -62,10 +62,17 @@ public class predictCost {
 
     public ArrayList getEstimationCost(int time, boolean getNormalized){
         ArrayList<Double> estimation = new ArrayList<Double>();
+        estimation.add(0.0);
         for(int i=1; i<=time; i++){
             double y_normalized = 0.0;
-            for (int j=0; j<parameters.size(); j++){
-                y_normalized += Math.pow(i, j) * parameters.get(j);
+            if (i >= 29){
+                for (int j=0; j<parameters.size(); j++){
+                    y_normalized += Math.pow(29, j) * parameters.get(j);
+                }
+            } else{
+                for (int j=0; j<parameters.size(); j++){
+                    y_normalized += Math.pow(i, j) * parameters.get(j);
+                }
             }
             if (!getNormalized) {
                 estimation.add(y_normalized*connexionCoeff*distanceStd + distanceMean);
@@ -74,6 +81,22 @@ public class predictCost {
             }
         }
         return estimation;
+    }
+
+    public ArrayList getEstimationMarginalCost(int time, boolean getNormalized){
+        ArrayList<Double> estimationCost = getEstimationCost(time, getNormalized);
+        ArrayList<Double> estimationMarginalCost = new ArrayList<Double>();
+        if (estimationCost.size() >= 2){
+            for(int i=1; i<estimationCost.size(); i++){
+                double value = estimationCost.get(i) - estimationCost.get(i-1);
+                estimationMarginalCost.add(value);
+            }
+        }
+        return estimationMarginalCost;
+    }
+
+    public double getDistanceMean(){
+        return distanceMean;
     }
 
     public void setBiais(double value, boolean alreadyNormalized){

@@ -34,8 +34,9 @@ public class CentralizedPlan {
         final int CRITERIA_1 = 800; // Maximum iteration to compute without improvement of a solution in a sub-part before to compute the next solution of this sub-part
         final int CRITERIA_2 = 3; // Number of solution to find in a sub-part.
         final int CRITERIA_3 = 3; // Number of part without improvement (stopCriteria)
-        final int NB_FINALSOLUTIONS = 5;
+        int NB_FINALSOLUTIONS = 5;
 
+        // In case of no task = no SLS
         if(tasks.size() == 0){
             return new SolutionObject(vehicles, tasks);
         }

@@ -2,6 +2,7 @@ package template;
 
 //the list of imports
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -41,12 +42,21 @@ public class AuctionTemplate implements AuctionBehavior {
 	private long timeout_plan;
 	private long timeout_bid;
 
+	private int count = 0;
+	private int loseCount = 0;
+	private int winCount = 0;
+
 	private ArrayList<Task> currentTasks;
 	private SolutionObject currentSolution;
 	private SolutionObject futureSolution;
 	private predictCost estimationFunction;
-    private double income;
-    private int count;
+    private double income = 0;
+    private double coefficient = 0.6;
+    private boolean isAboveLowerLimit = false;
+    private boolean isLastTimeWon = false;
+    private double adversaryBidMin = Double.MAX_VALUE;
+    private double bidRatio;
+    private ArrayList<ArrayList> allBids = new ArrayList<>();
 
 
 	@Override
@@ -77,34 +87,90 @@ public class AuctionTemplate implements AuctionBehavior {
 
 		this.currentTasks = new ArrayList<Task>();
 		this.currentSolution = new SolutionObject(vehicle, currentTasks);
-		this.income = 0;
 
 		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
 		this.random = new Random(seed);
 
 		this.estimationFunction = new predictCost(topology);
-		this.count = 0;
 	}
 
 
 	@Override
 	public void auctionResult(Task previous, int winner, Long[] bids) {
-		if (winner == agent.id()) {
+		if (winner == agent.id()) { //WON
 			currentSolution = new SolutionObject(futureSolution);
 			currentTasks.add(previous);
 			income += bids[agent.id()];
+			winCount += 1;
+            isLastTimeWon = true;
 
-            //if (count == 0){
-            double difference = currentSolution.getTotalCost() - (double) estimationFunction.getEstimationCost(count+1, false).get(count);
-            estimationFunction.setBiais(difference, false);
-            //}
+			// Retrieve the minimal bid of the adversary
+            if (bids[1-agent.id()] < adversaryBidMin){
+				adversaryBidMin = bids[1-agent.id()];
+			}
+
+            // Compute bidRatio = AdversaryBid / OwnBid
+            if (bids[agent.id()] != 0 && bids[1-agent.id()] != 0){
+            	bidRatio = (double) bids[1-agent.id()] / bids[agent.id()];
+			} else if (bids[1-agent.id()] != 0){
+				bidRatio = (double) bids[1-agent.id()] / 1;
+			}
+
+            // Update coefficient
+            coefficient *= bidRatio;
+
+            // Upper limit of coefficient
+			if (coefficient > 2.2){
+				coefficient = 2.2;
+			}
+
+			// Flag when the coefficient goes above the lower limit (linked with starting)
+			if (coefficient > 0.8){
+				isAboveLowerLimit = true;
+			}
+
+		} else{ //LOST
+			loseCount += 1;
+			isLastTimeWon = false;
+			adversaryBidMin = Double.MAX_VALUE;
+
+			// Compute bidRatio = AdversaryBid / OwnBid
+			if (bids[agent.id()] != 0 && bids[1-agent.id()] != 0){
+				bidRatio = (double) bids[1-agent.id()] / bids[agent.id()];
+			} else if (bids[1-agent.id()] != 0){
+				bidRatio = (double) bids[1-agent.id()] / 1;
+			}
+
+			// Compute the expected evolution of the bid of the adversary
+			double marginalCostFuture = (double) estimationFunction.getEstimationMarginalCost(loseCount+1, false).get(loseCount);
+			double marginalCostPresent = (double) estimationFunction.getEstimationMarginalCost(loseCount+1, false).get(loseCount-1);
+			double marginalCostEvolution;
+			if (marginalCostFuture > marginalCostPresent){
+				marginalCostEvolution = 1;
+			} else{
+				marginalCostEvolution = marginalCostFuture / marginalCostPresent;
+			}
+
+			// Compute only if coefficient above the lower limit (linked with starting)
+			if (coefficient > 0.8){
+				coefficient *= bidRatio * marginalCostEvolution;
+			}
+
+			// Lower limit of coefficient
+			if (coefficient < 0.8 && isAboveLowerLimit){
+				coefficient = 0.8;
+			}
 		}
+
+		// Display
 		double profit = income - currentSolution.getTotalCost();
 		System.out.println("Agent: "+agent.id());
 		System.out.println("Cost: " + currentSolution.getTotalCost());
 		System.out.println("Income: " + income);
 		System.out.println("Profit: " + profit);
         currentSolution.display();
+		System.out.println("Coefficient: " + coefficient);
+		allBids.add(new ArrayList<>(Arrays.asList(bids)));
         count += 1;
 	}
 
@@ -119,13 +185,20 @@ public class AuctionTemplate implements AuctionBehavior {
 
 		double marginalCost = futureSolution.getTotalCost() - currentSolution.getTotalCost();
 
-		if (count == 0){
-            return Math.round(marginalCost);
+        double bid;
+        if (marginalCost <= 0) {
+            bid = coefficient *(estimationFunction.getDistanceMean());
+        } else {
+        	bid = coefficient * marginalCost;
         }
 
-        double bid = (double) estimationFunction.getEstimationCost(count + 1, false).get(count);
+        if (isLastTimeWon){
+			if (bid <= 0.7*adversaryBidMin){
+				bid = 0.7*adversaryBidMin;
+			}
+		}
 
-		return Math.round(bid - currentSolution.getTotalCost());
+		return Math.round(bid);
 	}
 
 
@@ -135,8 +208,13 @@ public class AuctionTemplate implements AuctionBehavior {
 		currentSolution = CentralizedPlan.centralizedSolution(vehicles, tasksList, timeout_plan-5000);
         double profit = income - currentSolution.getTotalCost();
         System.out.println("------------------- FINAL SOLUTION -------------------");
+        System.out.println("------------------- Thomas & Jules -------------------");
         System.out.println("Agent: "+agent.id());
+        currentSolution.display();
+        System.out.println("Final Cost: " + currentSolution.getTotalCost());
+        System.out.println("Final Income: " + income);
         System.out.println("Final Profit: " + profit);
+        System.out.println(allBids);
         System.out.println("\n------------------------------------------------------\n");
 		return currentSolution.generatePlan();
 	}
