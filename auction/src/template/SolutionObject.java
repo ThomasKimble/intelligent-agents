@@ -24,7 +24,14 @@ public class SolutionObject{
         this.vehicles = vehicles;
         this.worldPlan = new ArrayList<>();
         this.tasks = tasks;
-        this.worldNbTask = tasks.size();
+
+        int id_max = Integer.MIN_VALUE;
+        for (Task t: tasks){
+            if (t.id > id_max){
+                id_max = t.id;
+            }
+        }
+        this.worldNbTask = id_max + 1; //tasks.size
         for(Vehicle vehicle: vehicles) {
             this.worldPlan.add(vehicle.id(), new ArrayList<Integer>()); //Initialisation
         }
@@ -176,7 +183,7 @@ public class SolutionObject{
             vPlan = getVehiclePlan(vID);
             System.out.println("Plan for vehicle " + vID + ": " + vPlan);
         }
-        getTotalCost();
+        System.out.println("\n------------------------------------------------------\n");
     }
 
 

@@ -1,0 +1,15 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="auction:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/auction_jar</output-path>
+    <root id="archive" name="auction.jar">
+      <element id="module-output" name="auction" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../logist/lib/repast.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../logist/logist.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../logist/lib/jsolver.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../logist/lib/plot.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../logist/lib/jdom.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../logist/lib/commons-math-1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../logist/lib/colt.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

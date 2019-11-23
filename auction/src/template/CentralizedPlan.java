@@ -27,49 +27,39 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class CentralizedPlan {
 
-    public static SolutionObject centralizedSolution(List<Vehicle> vehicles, List<Task> tasks){
+    public static SolutionObject centralizedSolution(List<Vehicle> vehicles, List<Task> tasks, long timeLimit){
         //***** SLS algorithm parameters *****
-        final String INITIALISATION_METHOD = "fairlyDistributed"; // Choice between "toTheBiggest", "randomly" and "fairlyDistributed".
-        final double PROBABILITY = 0.65; // Exploitation probability
+        String INITIALISATION_METHOD = "fairlyDistributed"; // Choice between "toTheBiggest", "randomly" and "fairlyDistributed".
+        final double PROBABILITY = 0.6; // Exploitation probability
         final int CRITERIA_1 = 800; // Maximum iteration to compute without improvement of a solution in a sub-part before to compute the next solution of this sub-part
         final int CRITERIA_2 = 3; // Number of solution to find in a sub-part.
         final int CRITERIA_3 = 3; // Number of part without improvement (stopCriteria)
         final int NB_FINALSOLUTIONS = 5;
 
+        if(tasks.size() == 0){
+            return new SolutionObject(vehicles, tasks);
+        }
+
 
         //***** Run SLS algorithm several times and choose the best solution among the final solutions computed *****
         ArrayList<SolutionObject> finalSolutions = new ArrayList<>();
         for (int i = 0; i < NB_FINALSOLUTIONS; i++){
-            finalSolutions.add(SLS(vehicles, tasks, INITIALISATION_METHOD, PROBABILITY, CRITERIA_1, CRITERIA_2, CRITERIA_3)); //timeout_plan/NB_FINALSOLUTIONS
+            if (i >= 3){
+                INITIALISATION_METHOD = "randomly";
+            }
+            finalSolutions.add(SLS(vehicles, tasks, INITIALISATION_METHOD, PROBABILITY, CRITERIA_1, CRITERIA_2, CRITERIA_3, timeLimit/NB_FINALSOLUTIONS));
         }
-        System.out.println("\n--------------------------------------------------------------------\n");
 
         int count = 1;
         double bestCost = Double.MAX_VALUE;
         SolutionObject bestSolution = null;
         for (SolutionObject solution: finalSolutions){
-            //System.out.println("\nPOSSIBLE BEST SOLUTION "+ count);
-            //solution.display();
             if (solution.getTotalCost() < bestCost){
                 bestCost = solution.getTotalCost();
                 bestSolution = new SolutionObject(solution);
             }
             count ++;
         }
-
-
-        System.out.println("\n--------------------------------------------------------------------\n");
-
-        //***** Generate plan for agents(vehicles) *****
-        //System.out.println("\nFINAL SOLUTION");
-        bestSolution.display();
-        System.out.println(bestSolution.getTotalCost());
-        //ArrayList<Plan> plans = new ArrayList<Plan>(bestSolution.generatePlan());
-
-        //long time_end = System.currentTimeMillis();
-        //long duration = time_end - time_start;
-        //System.out.println("Cost: "+bestCost);
-        //System.out.println("The plan was generated in " + duration + " milliseconds.");
 
         return bestSolution;
     }
@@ -79,7 +69,8 @@ public class CentralizedPlan {
     // SLS algorithm
     private static SolutionObject SLS(List<Vehicle> vehicles, List<Task> tasks,
                                       final String INITIALISATION_METHOD, final double PROBABILITY,
-                                      final int CRITERIA_1, final int CRITERIA_2, final int CRITERIA_3) { //, final long TIME
+                                      final int CRITERIA_1, final int CRITERIA_2, final int CRITERIA_3,
+                                      final long TIME) {
         //**********************************************************************
         //************************** SLS algorithm *****************************
         //**********************************************************************
@@ -100,7 +91,7 @@ public class CentralizedPlan {
 
         int iterationsCounter = 0;
         boolean stopCondition = false;
-        while (!stopCondition) { // && duration_SLS < (TIME-3000)
+        while (!stopCondition && duration_SLS < (TIME)) {
             //** 1st sub-step : ChooseNeighbours **
             // This function provides a set of candidate assignment that are close to the current one and could possibly improve it.
             ArrayList<SolutionObject> neighbourSolutions = chooseNeighbours(currentSolution, vehicles);
@@ -148,10 +139,10 @@ public class CentralizedPlan {
             }
             noImprovementSubSolutionCounter++;
             iterationsCounter++;
-            //time_end_SLS = System.currentTimeMillis();
-            //duration_SLS = time_end_SLS - time_start_SLS;
+            time_end_SLS = System.currentTimeMillis();
+            duration_SLS = time_end_SLS - time_start_SLS;
         }
-        //System.out.println("--> Number of iterations to find a solution: " + iterationsCounter);
+
         return currentSolution;
     }
 
@@ -217,8 +208,7 @@ public class CentralizedPlan {
                 }
                 break;
         }
-        //System.out.println("\nINITIALISATION PLAN");
-        //initialSolution.display();
+
         return initialSolution;
     }
 
