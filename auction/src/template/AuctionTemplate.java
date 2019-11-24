@@ -51,12 +51,16 @@ public class AuctionTemplate implements AuctionBehavior {
 	private SolutionObject futureSolution;
 	private predictCost estimationFunction;
     private double income = 0;
-    private double coefficient = 0.6;
+
     private boolean isAboveLowerLimit = false;
     private boolean isLastTimeWon = false;
     private double adversaryBidMin = Double.MAX_VALUE;
     private double bidRatio;
     private ArrayList<ArrayList> allBids = new ArrayList<>();
+
+	private double coefficient = 0.6;
+	private double lowerLimit = 0.9;
+	private double upperLimit = 2.2;
 
 
 	@Override
@@ -120,12 +124,12 @@ public class AuctionTemplate implements AuctionBehavior {
             coefficient *= bidRatio;
 
             // Upper limit of coefficient
-			if (coefficient > 2.2){
-				coefficient = 2.2;
+			if (coefficient > upperLimit){
+				coefficient = upperLimit;
 			}
 
 			// Flag when the coefficient goes above the lower limit (linked with starting)
-			if (coefficient > 0.8){
+			if (coefficient > 1){
 				isAboveLowerLimit = true;
 			}
 
@@ -152,13 +156,13 @@ public class AuctionTemplate implements AuctionBehavior {
 			}
 
 			// Compute only if coefficient above the lower limit (linked with starting)
-			if (coefficient > 0.8){
+			if (coefficient > lowerLimit){
 				coefficient *= bidRatio * marginalCostEvolution;
 			}
 
 			// Lower limit of coefficient
-			if (coefficient < 0.8 && isAboveLowerLimit){
-				coefficient = 0.8;
+			if (coefficient < lowerLimit && isAboveLowerLimit){
+				coefficient = lowerLimit;
 			}
 		}
 
